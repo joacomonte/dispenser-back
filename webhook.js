@@ -1,40 +1,40 @@
-const express = require('express');
-const axios = require('axios'); // You'll need to install axios: npm install axios
+const express = require("express");
 const app = express();
+const mqtt = require("mqtt");
 
 app.use(express.json());
 
-// Endpoint to receive notifications (keep your existing endpoint)
-app.post('/webhook', (req, res) => {
-    console.log("Notificación recibida:", req.body);
-    res.status(200).send('Webhook recibido');
+// MQTT connection options
+const options = {
+  host: "a2b6966071e4497baf9705b2d2086092.s1.eu.hivemq.cloud",
+  port: 8883,
+  protocol: "mqtts",
+  username: "YOUR_USERNAME",
+  password: "YOUR_PASSWORD",
+};
+
+// Connect to HiveMQ Cloud
+const client = mqtt.connect(options);
+
+// Handle connection events
+client.on("connect", () => {
+  console.log("Connected to HiveMQ Cloud");
 });
 
-// New endpoint to trigger webhook notification
-app.post('/trigger-webhook', async (req, res) => {
-    try {
-        // Replace this URL with your Postman webhook URL
-        const webhookUrl = 'https://webhook.site/9dc55be0-70f0-42d1-b9b1-40a673efcd99';
-        
-        // You can customize the payload that you want to send
-        const payload = {
-            event: 'trigger',
-            timestamp: new Date().toISOString(),
-            data: req.body // Forward any data received in the request
-        };
+client.on("error", (error) => {
+  console.error("Connection error:", error);
+});
 
-        // Send the webhook
-        const response = await axios.post(webhookUrl, payload);
-        console.log('Webhook sent successfully:', response.data);
-        
-        res.status(200).json({ message: 'Webhook sent successfully' });
-    } catch (error) {
-        console.error('Error sending webhook:', error);
-        res.status(500).json({ error: 'Failed to send webhook' });
+// Endpoint to receive notifications
+app.post("/webhook", (req, res) => {
+  console.log("Notificación recibida:", req.body);
+
+  // Publish 'OK' message to a specific topic
+  client.publish("your/topic/here", "OK", (error) => {
+    if (error) {
+      console.error("Publish error:", error);
     }
-});
+  });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Servidor escuchando en puerto ${PORT}`);
+  res.status(200).send("Webhook recibido");
 });
