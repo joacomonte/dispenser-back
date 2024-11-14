@@ -9,8 +9,8 @@ const options = {
   host: "a2b6966071e4497baf9705b2d2086092.s1.eu.hivemq.cloud",
   port: 8883,
   protocol: "mqtts",
-  username: "YOUR_USERNAME",
-  password: "YOUR_PASSWORD",
+  username: "joacomonte",
+  password: "Feather94",
 };
 
 // Connect to HiveMQ Cloud
