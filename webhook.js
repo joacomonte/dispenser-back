@@ -28,15 +28,15 @@ client.on("error", (error) => {
 // Endpoint to receive notifications
 app.post("/webhook", (req, res) => {
   console.log("Notificación recibida:", req.body);
-  
+
   // Send more detailed message
   const message = JSON.stringify({
     status: "OK",
     timestamp: new Date().toISOString(),
-    receivedData: req.body
+    receivedData: req.body,
   });
-  
-  client.publish("your/topic/here", message, (error) => {
+
+  client.publish("dispenser_01", message, (error) => {
     if (error) {
       console.error("Publish error:", error);
       res.status(500).json({ error: "Failed to publish message" });
@@ -49,9 +49,9 @@ app.post("/webhook", (req, res) => {
 // Handle connection events
 client.on("connect", () => {
   console.log("Connected to HiveMQ Cloud");
-  
+
   // Subscribe to the same topic we're publishing to
-  client.subscribe("your/topic/here", (err) => {
+  client.subscribe("dispenser_01", (err) => {
     if (!err) {
       console.log("Successfully subscribed to topic");
     } else {
@@ -68,5 +68,5 @@ client.on("message", (topic, message) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Servidor escuchando en puerto ${PORT}`);
+  console.log(`Servidor escuchando en puerto ${PORT}`);
 });
