@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const mqtt = require("mqtt");
+const { Logtail } = require("@logtail/node");
 
 app.use(express.json());
 
@@ -12,6 +13,10 @@ const options = {
   username: "joacomonte",
   password: "Feather94",
 };
+
+
+// Initialize Logtail with your source token
+const logtail = new Logtail("9oLPcVp9tMGwr9uXyQBaEFZt");
 
 // Connect to HiveMQ Cloud
 const client = mqtt.connect(options);
@@ -28,6 +33,14 @@ client.on("error", (error) => {
 // Endpoint to receive notifications
 app.post("/webhook", (req, res) => {
   console.log("Notificación recibida:", req.body);
+
+    // Log the notification with Logtail
+    logtail.info("Webhook notification received", {
+      dispenser_name: req.body.data.name,
+      amount: req.body.data.amount,
+      external_reference: req.body.data.external_reference,
+      timestamp: new Date().toISOString()
+    });
 
   // Send more detailed message
   const message = JSON.stringify({
