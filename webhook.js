@@ -31,15 +31,18 @@ client.on("error", (error) => {
 
 // Endpoint to receive notifications
 app.post("/webhook", (req, res) => {
+  const body = req.body
+  
   console.log("Notificación recibida:", req.body);
 
   try {
     // Log the notification with Logtail
     logtail.info("Webhook notification received", {
-      dispenser_name: req.body.data.name,
-      amount: req.body.data.amount,
-      external_reference: req.body.data.external_reference,
+      dispenser_name: req.body?.data?.name || 'unknown',
+      amount: req.body?.data?.amount || 0,
+      external_reference: req.body?.data?.external_reference || 'none',
       timestamp: new Date().toISOString(),
+      raw_data: req.body  // Including raw data for debugging
     });
   } catch (error) {
     console.error("Error logging to Logtail:", error);
@@ -49,14 +52,7 @@ app.post("/webhook", (req, res) => {
     });
   }
 
-  // Send more detailed message
-  const message = JSON.stringify({
-    status: "OK",
-    timestamp: new Date().toISOString(),
-    receivedData: req.body,
-  });
-
-  client.publish("dispenser_01", message, { qos: 1, retain: true }, (error) => {
+  client.publish("dispenser_01", body, { qos: 1, retain: true }, (error) => {
     if (error) {
       console.error("Publish error:", error);
       res.status(500).json({ error: "Failed to publish message" });
