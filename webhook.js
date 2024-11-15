@@ -31,13 +31,14 @@ client.on("error", (error) => {
 
 // Endpoint to receive notifications
 app.post("/webhook", (req, res) => {
-  const body = req.body;
+  const body = JSON.stringify(req.body);  // MQTT messages should be strings
 
   console.log("Notificación recibida:", req.body);
 
   if (req.body?.name) {
     logtail.info("Webhook notification received", {
-      dispenserName: req.body?.name || "unknown",
+      dispenserName: req.body.name || "unknown",
+      timestamp: new Date().toISOString()  // Good practice to include timestamp
     });
   }
 
