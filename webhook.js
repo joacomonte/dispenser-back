@@ -31,24 +31,13 @@ client.on("error", (error) => {
 
 // Endpoint to receive notifications
 app.post("/webhook", (req, res) => {
-  const body = req.body
-  
+  const body = req.body;
+
   console.log("Notificación recibida:", req.body);
 
-  try {
-    // Log the notification with Logtail
+  if (req.body?.name) {
     logtail.info("Webhook notification received", {
-      dispenser_name: req.body?.data?.name || 'unknown',
-      amount: req.body?.data?.amount || 0,
-      external_reference: req.body?.data?.external_reference || 'none',
-      timestamp: new Date().toISOString(),
-      raw_data: req.body  // Including raw data for debugging
-    });
-  } catch (error) {
-    console.error("Error logging to Logtail:", error);
-    logtail.error("Failed to log webhook notification", {
-      error: error.message,
-      rawBody: req.body,
+      dispenserName: req.body?.name || "unknown",
     });
   }
 
