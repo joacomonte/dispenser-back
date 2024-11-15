@@ -14,7 +14,6 @@ const options = {
   password: "Feather94",
 };
 
-
 // Initialize Logtail with your source token
 const logtail = new Logtail("9oLPcVp9tMGwr9uXyQBaEFZt");
 
@@ -34,13 +33,21 @@ client.on("error", (error) => {
 app.post("/webhook", (req, res) => {
   console.log("Notificación recibida:", req.body);
 
+  try {
     // Log the notification with Logtail
     logtail.info("Webhook notification received", {
       dispenser_name: req.body.data.name,
       amount: req.body.data.amount,
       external_reference: req.body.data.external_reference,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
+  } catch (error) {
+    console.error("Error logging to Logtail:", error);
+    logtail.error("Failed to log webhook notification", {
+      error: error.message,
+      rawBody: req.body,
+    });
+  }
 
   // Send more detailed message
   const message = JSON.stringify({
@@ -49,7 +56,7 @@ app.post("/webhook", (req, res) => {
     receivedData: req.body,
   });
 
-  client.publish("dispenser_01", message, (error) => {
+  client.publish("dispenser_01", message, { qos: 1, retain: true }, (error) => {
     if (error) {
       console.error("Publish error:", error);
       res.status(500).json({ error: "Failed to publish message" });
