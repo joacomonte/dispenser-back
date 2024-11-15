@@ -42,7 +42,7 @@ app.post("/webhook", (req, res) => {
     });
   }
 
-  client.publish("dispenser_01", body, { qos: 1, retain: true }, (error) => {
+  client.publish("dispenser_01", body, { qos: 2, retain: true }, (error) => {
     if (error) {
       console.error("Publish error:", error);
       res.status(500).json({ error: "Failed to publish message" });
@@ -57,7 +57,7 @@ client.on("connect", () => {
   console.log("Connected to HiveMQ Cloud");
 
   // Subscribe with QoS 1 to receive retained messages
-  client.subscribe("dispenser_01", { qos: 1 }, (err) => {
+  client.subscribe("dispenser_01", { qos: 2 }, (err) => {
     if (!err) {
       console.log("Successfully subscribed to topic");
     } else {
