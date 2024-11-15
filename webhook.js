@@ -56,8 +56,8 @@ app.post("/webhook", (req, res) => {
 client.on("connect", () => {
   console.log("Connected to HiveMQ Cloud");
 
-  // Subscribe to the same topic we're publishing to
-  client.subscribe("dispenser_01", (err) => {
+  // Subscribe with QoS 1 to receive retained messages
+  client.subscribe("dispenser_01", { qos: 1 }, (err) => {
     if (!err) {
       console.log("Successfully subscribed to topic");
     } else {
@@ -66,10 +66,12 @@ client.on("connect", () => {
   });
 });
 
-// Add message handler
+// Add message handler to receive messages (including retained ones)
 client.on("message", (topic, message) => {
-  console.log("Received message on topic:", topic);
-  console.log("Message:", JSON.parse(message.toString()));
+  console.log("Received message:", {
+    topic: topic,
+    message: message.toString()
+  });
 });
 
 const PORT = process.env.PORT || 3000;
