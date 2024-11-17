@@ -1,8 +1,9 @@
-const express = require("express");
-const app = express();
-const mqtt = require("mqtt");
-const { Logtail } = require("@logtail/node");
+import express from "express";
+import mqtt from "mqtt";
+import { Logtail } from "@logtail/node";
 import axios from "axios";
+
+const app = express();
 
 app.use(express.json());
 
