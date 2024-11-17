@@ -49,10 +49,10 @@ app.post("/webhook", async (req, res) => {
       };
 
       const response = await axios.get(url, { headers });
-      const paymentData = response.data;
+      const paymentData = response;
 
       // Handle the payment data
-      console.log(paymentData);
+      console.log('payment', paymentData);
     } catch (error) {
       console.error("Error fetching payment data:", error);
     }
