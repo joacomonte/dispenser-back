@@ -2,13 +2,17 @@ import express from "express";
 import mqtt from "mqtt";
 import { Logtail } from "@logtail/node";
 import axios from "axios";
+import Redis from "ioredis";
 
 const app = express();
+const redis = new Redis(
+  "rediss://default:AZntAAIjcDFlMGYyODE5ZDk5NDA0MjZjYjYzMDkzYWM5OWU5YjQ3OXAxMA@handy-tortoise-39405.upstash.io:6379"
+);
 
 app.use(express.json());
 
 const accessToken =
-  "APP_USR-1457935629520484-111619-1e4e5d0222028a11a4d5aa02e3faf4ee-2102637178";
+  "APP_USR-107096368082049-112618-3d1e111b795bb43351b273aea4ea5e9a-189334698";
 
 // MQTT connection options
 const options = {
@@ -34,6 +38,57 @@ client.on("error", (error) => {
   console.error("Connection error:", error);
 });
 
+app.post("/db", async (req, res) => {
+  const { dispenserId, status, action, stock } = req.body;
+
+  try {
+    // Get the current dispenser data from Redis
+    const currentData = await redis.get(`dispenser:${dispenserId}`);
+    const dispenserData = currentData ? JSON.parse(currentData) : {};
+
+    // Get the current date and time
+    const currentDate = new Date();
+    
+    let newStock;
+    switch (action) {
+      case "delivered":
+        newStock = dispenserData.stock ? dispenserData.stock - 1 : stock;
+        break;
+      case "write":
+        newStock = stock;
+        break;
+      default:
+        newStock = dispenserData.stock;
+    }
+    
+    // Update the dispenser data object
+    const updatedDispenserData = {
+      status,
+      stock: newStock,
+      history: [
+        ...(dispenserData.history || []),
+        {
+          date: currentDate.toLocaleString(),
+          action,
+          stock: newStock,
+        },
+      ],
+    };
+
+    // Store the updated dispenser data as JSON in Redis
+    await redis.set(
+      `dispenser:${dispenserId}`,
+      JSON.stringify(updatedDispenserData)
+    );
+
+    console.log("Dispenser data stored in Redis successfully");
+    res.status(200).json({ message: "Data received and stored successfully" });
+  } catch (error) {
+    console.error("Error storing dispenser data in Redis:", error);
+    res.status(500).json({ error: "An error occurred while storing data" });
+  }
+});
+
 // Endpoint to receive notifications
 app.post("/webhook", async (req, res) => {
   const { action, data } = req.body;
@@ -53,7 +108,7 @@ app.post("/webhook", async (req, res) => {
       const paymentData = response;
 
       // Handle the payment data
-      console.log('payment', paymentData);
+      console.log("payment", paymentData);
     } catch (error) {
       console.error("Error fetching payment data:", error);
     }
