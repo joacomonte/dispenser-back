@@ -116,7 +116,7 @@ app.post("/webhook", async (req, res) => {
 
   const body = JSON.stringify(req.body); // MQTT messages should be strings
 
-  client.publish("dispenser_01", body, { qos: 2 }, (error) => {
+  client.publish("dispenser_01", body, { qos: 2, retain: false }, (error) => {
     if (error) {
       console.error("Publish error:", error);
       res.status(500).json({ error: "Failed to publish message" });
